@@ -7,23 +7,26 @@ import (
 	"net/http"
 )
 
-type Request struct {
-	Name    string `json:"name"`
-	Address string `json:"address"`
+type LoginDetails struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
-func formHandler(w http.ResponseWriter, r *http.Request) {
-	var request Request
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	var details LoginDetails
 
-	fmt.Fprintf(w, "POST request successful\n")
-	err := json.NewDecoder(r.Body).Decode(&request)
+	err := json.NewDecoder(r.Body).Decode(&details)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	fmt.Fprintf(w, "Name = %s\n", request.Name)
-	fmt.Fprintf(w, "Address = %s\n", request.Address)
+	if details.Username != "admin" || details.Password != "admin" {
+		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
+		return
+	} else {
+		fmt.Fprintf(w, "Login successful")
+	}
 }
 
 func helloHandler(w http.ResponseWriter, r *http.Request) {
@@ -41,10 +44,7 @@ func helloHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	fileServer := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fileServer)
-	http.HandleFunc("/form", formHandler)
-	http.HandleFunc("/hello", helloHandler)
+	http.HandleFunc("/login", loginHandler)
 
 	fmt.Printf("Starting server at port 8080\n")
 	if err := http.ListenAndServe(":8080", nil); err != nil {
