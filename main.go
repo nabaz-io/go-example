@@ -5,20 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
+
+	"github.com/nabaz-io/go-example/auth"
 )
-
-func open_file(filename string) {
-	fmt.Println("Opening file: " + filename)
-}
-
-func getFile(path string) {
-	file, err := os.Open(path)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer file.Close()
-}
 
 type LoginDetails struct {
 	Username string `json:"username"`
@@ -34,12 +23,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if details.Username != "admin" || details.Password != "admin" {
+	if !auth.Auth(details.Username, details.Password) {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
-	} else {
-		fmt.Fprintf(w, "Login successful")
 	}
+
+	fmt.Fprintf(w, "Login successful")
 }
 
 func main() {
